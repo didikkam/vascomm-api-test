@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserController extends Controller
+class ProductController extends Controller
 {
     public function index(Request $request)
     {
         $take = $request->input('take', 10);
         $skip = $request->input('skip', 0);
         $search = $request->input('search', '');
-        $query = User::query();
+        $query = Product::query();
         if ($search !== '') {
             $query->where('name', 'like', '%' . $search . '%');
-            $query->orWhere('email', 'like', '%' . $search . '%');
+            $query->orWhere('price', 'like', '%' . $search . '%');
         }
         $users = $query->take($take)->skip($skip)->get();
         return getSuccessMessage($users);
@@ -29,20 +28,18 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required|string|max:255',
-            'email'     => 'required|string|max:255|email|unique:users',
-            'phone'     => 'required|numeric|unique:users',
-            'password'  => 'required|string|max:255',
+            'price'     => 'required|numeric',
+            'status'     => 'required|numeric',
         ]);
         if ($validator->fails()) {
             return getValidatedMessage($validator);
         }
 
         try {
-            $data = User::create([
+            $data = Product::create([
                 'name'     => $request->name,
-                'email'     => $request->email,
-                'password'     => Hash::make($request->password),
-                'phone'     => $request->phone,
+                'price'     => $request->price,
+                'status'     => $request->status,
             ]);
             return getSuccessMessage($data);
         } catch (\Throwable $th) {
@@ -53,7 +50,7 @@ class UserController extends Controller
     public function show($id)
     {
         try {
-            $data = User::where("id", $id)->first();
+            $data = Product::where("id", $id)->first();
             if (!$data) {
                 throw new Exception("Data tidak ditemukan", Response::HTTP_NOT_FOUND);
             }
@@ -66,29 +63,25 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:255',
-            'email'   => 'required|string|max:255|email',
-            'phone'     => 'required|numeric',
-            'password'  => 'nullable|string|max:255',
+            'name'      => 'required|string|max:255',
+            'price'     => 'required|numeric',
+            'status'     => 'required|numeric',
         ]);
         if ($validator->fails()) {
             return getValidatedMessage($validator);
         }
 
         try {
-            $data = User::where("id", $id)->first();
+            $data = Product::where("id", $id)->first();
             if (!$data) {
                 throw new Exception("Data tidak ditemukan", Response::HTTP_NOT_FOUND);
             }
 
             $dataUser = [
                 'name'     => $request->name,
-                'email'     => $request->email,
-                'phone'     => $request->phone,
+                'price'     => $request->price,
+                'status'     => $request->status,
             ];
-            if ($request->password) {
-                $dataUser['password'] = Hash::make($request->password);
-            }
             $data->update($dataUser);
             return getSuccessMessage($data);
         } catch (\Throwable $th) {
@@ -99,7 +92,7 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
-            $data = User::where("id", $id)->first();
+            $data = Product::where("id", $id)->first();
             if (!$data) {
                 throw new Exception("Data tidak ditemukan", Response::HTTP_NOT_FOUND);
             }

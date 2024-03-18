@@ -27,3 +27,14 @@ $router->group([
     $router->put('/{id}', 'UserController@update');
     $router->delete('/{id}', 'UserController@destroy');
 });
+
+$router->group([
+    'prefix' => 'products',
+    'as' => 'products.',
+], function ($router) {
+    $router->get('/', 'ProductController@index');
+    $router->post('/', 'ProductController@store');
+    $router->get('/{id}', 'ProductController@show');
+    $router->put('/{id}', 'ProductController@update');
+    $router->delete('/{id}', 'ProductController@destroy');
+});
